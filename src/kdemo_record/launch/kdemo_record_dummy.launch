@@ -1,0 +1,15 @@
+<?xml version="1.0"?>
+
+<launch>
+
+    <!-- Object load controller -->
+    <arg name="node_name" default="kdemo_record_node" />
+    <node pkg="kdemo_record" type="kdemo_record" name="$(arg node_name)"
+          output="screen" cwd="node">
+
+          <param name="robot_type" value="dummy" type="str"/>
+
+    </node>
+
+
+</launch>

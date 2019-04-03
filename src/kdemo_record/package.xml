@@ -1,0 +1,25 @@
+<?xml version="1.0"?>
+<package>
+  <name>kdemo_record</name>
+  <version>0.0.0</version>
+  <description>GUI for kinesthetic robot demo recording</description>
+
+  <maintainer email="antosidi646@gmail.com">Antonis Sidiropoulos</maintainer>
+
+  <license>MIT</license>
+
+  <buildtool_depend>catkin</buildtool_depend>
+
+  <build_depend>roscpp</build_depend>
+  <run_depend>roscpp</run_depend>
+
+  <build_depend>roslib</build_depend>
+  <run_depend>roslib</run_depend>
+
+  <build_depend>lwr4p</build_depend>
+  <run_depend>lwr4p</run_depend>
+
+  <build_depend>ati_sensor</build_depend>
+  <run_depend>ati_sensor</run_depend>
+
+</package>
