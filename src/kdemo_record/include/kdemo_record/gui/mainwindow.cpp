@@ -8,6 +8,9 @@ MainWindow::MainWindow(const Robot *robot, const RecData *rec_data, QWidget *par
   this->robot = robot;
   this->rec_data = rec_data;
 
+  mode_name[FREEDRIVE] = "FREEDRIVE";
+  mode_name[IDLE] = "IDLE";
+
   //this->resize(400,350);
   this->setWindowTitle("Kinesthetic Demo Recorder");
 
@@ -49,6 +52,11 @@ MainWindow::~MainWindow()
 MainWindow::Mode MainWindow::getMode() const
 {
   return mode;
+}
+
+QString MainWindow::getModeName() const
+{
+  return (mode_name.find(getMode()))->second;
 }
 
 void MainWindow::setMode(const Mode &m)
@@ -445,6 +453,7 @@ void MainWindow::setStartPosePressed()
 void MainWindow::closeEvent(QCloseEvent *event)
 {
   is_running = false;
+  const_cast<Robot *>(robot)->setExternalStop(true);
   QMainWindow::closeEvent(event);
 }
 
@@ -468,4 +477,5 @@ void MainWindow::modeChanged()
 {
   this->setEnabled(true);
   updateInterface();
+  showInfoMsg("Mode changed to \"" + getModeName() + "\n");
 }

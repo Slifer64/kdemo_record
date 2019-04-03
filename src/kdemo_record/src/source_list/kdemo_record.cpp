@@ -15,6 +15,7 @@ KDemoRecord::KDemoRecord()
   std::string robot_type="";
 
   ros::NodeHandle("~").getParam("robot_type",robot_type);
+  // std::cerr << "=============> robot_type = " << robot_type << "\n";
 
   if (robot_type.compare("lwr4p")==0) robot.reset(new LWR4p_Robot);
   else if (robot_type.compare("dummy")==0) robot.reset(new DummyRobot);
@@ -26,7 +27,9 @@ KDemoRecord::KDemoRecord()
 
   rec_data.reset(new RecData);
 
+  // std::cerr << "=============> Launching GUI...\n";
   launchGUI();
+  // std::cerr << "=============> GUI started!!!\n";
 }
 
 KDemoRecord::~KDemoRecord()
@@ -123,8 +126,9 @@ void KDemoRecord::run()
 
 bool KDemoRecord::gotoStartPose()
 {
-  // err_msg = ...
-  // return false;
+  arma::vec q = robot->getJointsPosition();
+  double duration = arma::max(arma::abs(q-q_start))*7.0/3.14;
+  robot->setJointsTrajectory(q_start, duration);
 
   return true;
 }

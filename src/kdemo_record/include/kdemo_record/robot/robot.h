@@ -64,6 +64,7 @@ public:
 
   std::vector<std::string> getJointNames() const;
 
+  virtual void setExternalStop(bool set) = 0;
 protected:
 
   Eigen::Vector4d rotm2quat(Eigen::Matrix3d rotm) const;

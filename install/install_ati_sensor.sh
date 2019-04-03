@@ -19,7 +19,7 @@ echo -e $COLOR_CYAN"******************"$COLOR_RESET
 
 echo -e $COLOR_BLUE"Installing ATI Sensor ROS Package..."$COLOR_RESET
 
-cd $MAIN_WS_DIR/src/ft_sensors/ && \
+cd $MAIN_WS_DIR/src/sensors/ && \
 
 if [ -d ati ]; then
   rm -rf ati

@@ -8,11 +8,12 @@ LWR4p_Robot::LWR4p_Robot()
   jpos_upper_lim = arma::vec({170, 120, 170, 120, 170, 120, 170});
 
   // Initialize generic robot with the kuka-lwr model
+  // std::cerr << "=======> Creating robot...\n";
   robot.reset(new lwr4p::Robot());
-  // std::cout << "Robot created successfully!\n";
+  // std::cerr << "=======> Robot created successfully!\n";
 
   std::string ft_sensor_ip = "192.168.2.1";
-  // std::cout << "Initializing F/T sensor at ip: " << ft_sensor_ip << "\n";
+  // std::cerr << "Initializing F/T sensor at ip: " << ft_sensor_ip << "\n";
   ftsensor.init(ft_sensor_ip.c_str());
   ftsensor.setTimeout(1.0);
   ftsensor.setBias();
@@ -40,11 +41,13 @@ void LWR4p_Robot::setMode(const Robot::Mode &mode)
 {
   if (mode == this->getMode()) return;
 
-  switch (mode){
+  switch (mode)
+  {
     case FREEDRIVE:
       robot->setMode(lwr4p::Mode::TORQUE_CONTROL);
       break;
     case IDLE:
+      robot->setMode(lwr4p::Mode::POSITION_CONTROL);
       robot->setMode(lwr4p::Mode::STOPPED);
       break;
   }

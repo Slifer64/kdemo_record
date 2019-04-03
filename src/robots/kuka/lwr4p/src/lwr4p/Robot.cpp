@@ -11,6 +11,8 @@ namespace lwr4p
 
   Robot::Robot(const char *path_to_FRI_init): N_JOINTS(7)
   {
+    ext_stop = false;
+
     if (path_to_FRI_init == NULL)
       FRI.reset(new FastResearchInterface("/home/user/lwr/980500-FRI-Driver.init"));
     else
@@ -42,14 +44,17 @@ namespace lwr4p
     {
       case lwr4p::Mode::STOPPED:
         stopController();
+        this->mode = lwr4p::Mode::STOPPED;
         break;
       case lwr4p::Mode::POSITION_CONTROL:
         if (this->mode != lwr4p::Mode::STOPPED) stopController();
         startJointPositionController();
+        this->mode = lwr4p::Mode::POSITION_CONTROL;
         break;
       case lwr4p::Mode::TORQUE_CONTROL:
         if (this->mode != lwr4p::Mode::STOPPED) stopController();
         startJointTorqueController();
+        this->mode = lwr4p::Mode::TORQUE_CONTROL;
         break;
       default: std::cerr << "Mode " << mode << " Not available" << std::endl;
     }
@@ -91,7 +96,7 @@ namespace lwr4p
     return retTemp;
   }
 
-  void Robot::setJointTrajectory(const arma::vec &input, double duration)
+  bool Robot::setJointsTrajectory(const arma::vec &input, double duration)
   {
     // setJntPosTrajTemplate(input, duration)
     // inital joint position values
@@ -111,6 +116,8 @@ namespace lwr4p
     // the main while
     while (t < duration)
     {
+      if (!isOk() || externalStop()) return false;
+
       // waits for the next tick also
       FRI->WaitForKRCTick();
       // compute time now
@@ -122,6 +129,8 @@ namespace lwr4p
     }
     // reset last known robot mode
     setMode(prev_mode);
+
+    return true;
   }
 
   void Robot::startJointPositionController()

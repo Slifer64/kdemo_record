@@ -18,7 +18,7 @@
 #include <QMessageBox>
 #include <QFileDialog>
 
-#include <mutex>
+#include <map>
 
 #include "data_rec_dialog.h"
 #include "data_plot_dialog.h"
@@ -44,6 +44,7 @@ public:
 
     void setMode(const Mode &m);
     MainWindow::Mode getMode() const;
+    QString getModeName() const;
 
     bool isRunning() const { return is_running; }
     bool record() const { return rec; }
@@ -90,6 +91,8 @@ private slots:
 private:
     QWidget *central_widget;
     QStatusBar *status_bar;
+
+    std::map<Mode, QString> mode_name;
 
     Mode mode;
 

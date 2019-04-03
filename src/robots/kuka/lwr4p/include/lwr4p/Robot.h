@@ -7,6 +7,7 @@
 #include <memory>
 #include <vector>
 #include <string>
+#include <mutex>
 
 #include <armadillo>
 
@@ -33,6 +34,9 @@ public:
   void waitNextCycle() { FRI->WaitForKRCTick(); }
   double getControlCycle() const { return cycle; }
   Mode getMode() const { return mode; }
+
+  bool externalStop() const { return ext_stop; }
+  void setExternalStop(bool set) { std::unique_lock<std::mutex> lck(ext_stop_mtx); ext_stop = set; }
 
   arma::vec getJointPosition()
   {
@@ -223,7 +227,7 @@ public:
     }
   }
 
-  void setJointTrajectory(const arma::vec &input, double duration);
+  bool setJointsTrajectory(const arma::vec &input, double duration);
 
 private:
   std::shared_ptr<FastResearchInterface> FRI;
@@ -231,6 +235,8 @@ private:
   void startJointTorqueController();
   void stopController();
 
+  std::mutex ext_stop_mtx;
+  bool ext_stop;
 
   /**
    * @brief The current Mode of the robot.

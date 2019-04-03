@@ -6,7 +6,7 @@
 
 DummyRobot::DummyRobot()
 {
-  stop_signal = false;
+  ext_stop = false;
 
   N_JOINTS = 7;
 
@@ -104,7 +104,7 @@ bool DummyRobot::setJointsTrajectory(const arma::vec &qT, double duration)
   {
     jpos = jpos + 0.01*(qT-jpos);
     update();
-    if (!isOk() || stopSignalSent())
+    if (!isOk() || externalStop())
     {
       err_occured = true;
       break;

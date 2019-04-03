@@ -3,6 +3,7 @@
 
 #include <kdemo_record/robot/robot.h>
 #include <armadillo>
+#include <mutex>
 
 class DummyRobot: public Robot
 {
@@ -37,26 +38,23 @@ public:
 
   void stop();
 
-  void sendStopSignal() { stop_signal=true; }
-
   void setMode(const Robot::Mode &mode);
 
   double getCtrlCycle() const
   { return 0.005; }
 
   bool isOk() const
-  { return !stop_signal; }
+  { return !externalStop(); }
 
   bool setJointsTrajectory(const arma::vec &qT, double duration);
 
-  bool isStopped() const { return getMode()==Robot::IDLE; }
+  void setExternalStop(bool set) { ext_stop = set; }
 
-  bool stopSignalSent() const { return stop_signal; }
+  bool externalStop() const { return ext_stop; }
 
 private:
 
-  std::mutex stop_signal_mtx;
-  bool stop_signal;
+  bool ext_stop;
 
   double t;
   double Ts;

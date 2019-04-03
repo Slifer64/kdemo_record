@@ -85,7 +85,7 @@ void ViewJPosDialog::updateDialogThread()
 
     while (run)
     {
-        arma::vec jpos = readJointsPosition();
+        arma::vec jpos = readJointsPosition()*180/3.14159;
 
         for (int i=0; i<N_JOINTS; i++) slider_pos(i) = jointPos2SliderPos(jpos(i), i);
         //= (jpos-jlow_lim)*(slider_max-slider_min)/(jup_lim-jlow_lim) + slider_min + 0.5;

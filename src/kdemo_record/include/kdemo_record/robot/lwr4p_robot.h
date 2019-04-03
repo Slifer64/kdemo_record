@@ -76,7 +76,9 @@ public:
   { return (robot->isOk()); }
 
   bool setJointsTrajectory(const arma::vec &qT, double duration)
-  { robot->setJointTrajectory(qT, duration); }
+  { return robot->setJointsTrajectory(qT, duration); }
+
+  void setExternalStop(bool set) { robot->setExternalStop(set); }
 
 private:
   std::shared_ptr<lwr4p::Robot> robot;
