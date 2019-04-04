@@ -4,12 +4,16 @@
 #include <kdemo_record/robot/robot.h>
 #include <armadillo>
 #include <mutex>
+#include <thread>
+#include <chrono>
 
 class DummyRobot: public Robot
 {
 public:
   DummyRobot();
   ~DummyRobot();
+
+  void commandThread();
 
   int getNumOfJoints() const
   { return N_JOINTS; }
@@ -19,6 +23,12 @@ public:
 
   arma::vec getTaskOrientation() const
   { return quat; }
+
+  arma::vec getTaskForce() const
+  { return getTaskWrench().subvec(0,2); }
+
+  arma::vec getTaskTorque() const
+  { return getTaskWrench().subvec(3,5); }
 
   arma::vec getTaskWrench() const
   { return arma::join_vert(force,torque); }
@@ -32,32 +42,50 @@ public:
   arma::mat getJacobian() const
   { return jacob; }
 
-  void update();
+  void update()
+  {
+    // std::cerr << "[DummyRobot::update]: <KRC_tick>: Waiting for notification...\n";;
+    KRC_tick.wait();
+    // std::cerr << "[DummyRobot::update]: <KRC_tick>: Got notification!\n";
+}
 
-  void command();
+  arma::vec getJointsLowerLimits() const
+  { return jpos_low_lim; }
+
+  arma::vec getJointsUpperLimits() const
+  { return jpos_upper_lim; }
 
   void stop();
 
   void setMode(const Robot::Mode &mode);
 
   double getCtrlCycle() const
-  { return 0.005; }
+  { return Ts; }
 
   bool isOk() const
-  { return !externalStop(); }
+  { return !ext_stop; }
 
   bool setJointsTrajectory(const arma::vec &qT, double duration);
 
   void setExternalStop(bool set) { ext_stop = set; }
 
-  bool externalStop() const { return ext_stop; }
+  std::vector<std::string> getJointNames() const
+  { return jnames; }
 
 private:
 
-  bool ext_stop;
+  void setJointTorque(const arma::vec &jtorque);
+  void setJointPosition(const arma::vec &jpos);
 
   double t;
   double Ts;
+
+  bool ext_stop;
+
+  MtxVar<Mode> cmd_mode;
+  Semaphore mode_change;
+
+  int N_JOINTS;
 
   arma::vec jpos;
   arma::vec jtorque;
@@ -69,6 +97,11 @@ private:
 
   arma::vec jpos_target;
   arma::uvec target_reached;
+
+  arma::vec jpos_low_lim;
+  arma::vec jpos_upper_lim;
+
+  std::vector<std::string> jnames;
 
 };
 

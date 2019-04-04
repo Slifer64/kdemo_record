@@ -116,7 +116,7 @@ namespace lwr4p
     // the main while
     while (t < duration)
     {
-      if (!isOk() || externalStop()) return false;
+      if (!isOk()) return false;
 
       // waits for the next tick also
       FRI->WaitForKRCTick();

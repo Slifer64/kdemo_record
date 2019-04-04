@@ -7,6 +7,14 @@ LWR4p_Robot::LWR4p_Robot()
   jpos_low_lim = -arma::vec({170, 120, 170, 120, 170, 120, 170});
   jpos_upper_lim = arma::vec({170, 120, 170, 120, 170, 120, 170});
 
+  jnames.resize(N_JOINTS);
+  jnames[0] = "lwr_joint_1";
+  for (int i=1;i<N_JOINTS;i++)
+  {
+    jnames[i] = jnames[i-1];
+    jnames[i].back()++;
+  }
+
   // Initialize generic robot with the kuka-lwr model
   // std::cerr << "=======> Creating robot...\n";
   robot.reset(new lwr4p::Robot());
@@ -17,6 +25,12 @@ LWR4p_Robot::LWR4p_Robot()
   ftsensor.init(ft_sensor_ip.c_str());
   ftsensor.setTimeout(1.0);
   ftsensor.setBias();
+
+  mode.set(Robot::STOPPED);
+  cmd_mode.set(mode.get());
+  jpos_cmd.set(robot->getJointPosition());
+
+  std::thread(&LWR4p_Robot::commandThread,this).detach();
 }
 
 LWR4p_Robot::~LWR4p_Robot()
@@ -24,37 +38,64 @@ LWR4p_Robot::~LWR4p_Robot()
 
 }
 
-void LWR4p_Robot::command()
-{
-  switch (this->getMode())
-  {
-    case Robot::Mode::FREEDRIVE:
-      robot->setJointTorque(arma::vec().zeros(N_JOINTS));
-      break;
-    case Robot::Mode::IDLE:
-      // do nothing for kuka
-      break;
-  }
-}
-
 void LWR4p_Robot::setMode(const Robot::Mode &mode)
 {
-  if (mode == this->getMode()) return;
+  if (mode == cmd_mode.get()) return;
 
-  switch (mode)
+  cmd_mode.set(mode);
+  mode_change.wait(); // wait to get notification from commandThread
+}
+
+void LWR4p_Robot::commandThread()
+{
+  while (isOk())
   {
-    case FREEDRIVE:
-      robot->setMode(lwr4p::Mode::TORQUE_CONTROL);
-      break;
-    case IDLE:
-      robot->setMode(lwr4p::Mode::POSITION_CONTROL);
-      robot->setMode(lwr4p::Mode::STOPPED);
-      break;
+    Mode new_mode = cmd_mode.get();
+    // check if we have to switch mode
+    if (new_mode != mode.get())
+    {
+      switch (new_mode)
+      {
+        case FREEDRIVE:
+          robot->setMode(lwr4p::Mode::TORQUE_CONTROL);
+          jtorque_cmd.set(arma::vec().zeros(N_JOINTS));
+          break;
+        case IDLE:
+          robot->setMode(lwr4p::Mode::POSITION_CONTROL);
+          jpos_cmd.set(robot->getJointPosition());
+          break;
+        case STOPPED:
+          robot->setMode(lwr4p::Mode::POSITION_CONTROL);
+          robot->setMode(lwr4p::Mode::STOPPED);
+          robot->setExternalStop(true);
+          mode.set(new_mode);
+          mode_change.notify(); // unblock in case wait was called from another thread
+          KRC_tick.notify(); // unblock in case wait was called from another thread
+          return;
+      }
+      mode.set(new_mode);
+      mode_change.notify();
+    }
+
+    // send command according to current mode
+    switch (mode.get())
+    {
+      case Robot::Mode::FREEDRIVE:
+        robot->setJointTorque(jtorque_cmd.get());
+        break;
+      case Robot::Mode::IDLE:
+        robot->setJointPosition(jpos_cmd.get());
+        break;
+    }
+
+    // sync with KRC
+    robot->waitNextCycle();
+    KRC_tick.notify();
   }
-  this->mode = mode;
+
 }
 
 void LWR4p_Robot::stop()
 {
-  robot->setMode(lwr4p::Mode::STOPPED);
+  setMode(Robot::STOPPED);
 }

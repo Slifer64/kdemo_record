@@ -32,8 +32,6 @@ MainWindow::MainWindow(const Robot *robot, const RecData *rec_data, QWidget *par
 
   createMenus();
 
-  mode = FREEDRIVE;
-  setMode(IDLE);
   rec = false;
   goto_start_pose = false;
   current_pose_as_start = false;
@@ -42,6 +40,9 @@ MainWindow::MainWindow(const Robot *robot, const RecData *rec_data, QWidget *par
   is_running = true;
 
   default_save_data_path = "../data/recorded_data.bin";
+
+  mode = FREEDRIVE;
+  setMode(IDLE);
 }
 
 MainWindow::~MainWindow()
@@ -64,6 +65,9 @@ void MainWindow::setMode(const Mode &m)
   if (getMode() == m) return;
 
   mode = m;
+
+  idle_btn->setStyleSheet("QPushButton { color: black; background-color: rgb(225, 225, 225) }");
+  freedrive_btn->setStyleSheet("QPushButton { color: black; background-color: rgb(225, 225, 225) }");
 
   this->setEnabled(false);
 

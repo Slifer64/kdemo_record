@@ -62,17 +62,17 @@ void KDemoRecord::run()
 
   while (gui->isRunning())
   {
-    robot->update();
-
     // =======> Check mode
     if (gui->getMode()==MainWindow::FREEDRIVE && robot->getMode()!=Robot::FREEDRIVE)
     {
       robot->setMode(Robot::FREEDRIVE);
+      // std::cerr << "[KDemoRecord::run::FREEDRIVE]: gui->modeChangedSignal()\n";
       if (robot->isOk()) gui->modeChangedSignal(); // inform the gui that the robot's mode changed
     }
     else if (gui->getMode()==MainWindow::IDLE && robot->getMode()!=Robot::IDLE)
     {
       robot->setMode(Robot::IDLE);
+      // std::cerr << "[KDemoRecord::run::IDLE]: gui->modeChangedSignal()\n";
       if (robot->isOk()) gui->modeChangedSignal(); // inform the gui that the robot's mode changed
     }
 
@@ -113,7 +113,8 @@ void KDemoRecord::run()
       gui->infoMsgSignal("Registered current pose as start!");
     }
 
-    robot->command();
+    robot->update();
+    // robot->command();
   }
 
   if (robot->isOk()) robot->stop();

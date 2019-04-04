@@ -12,6 +12,8 @@ public:
   LWR4p_Robot();
   ~LWR4p_Robot();
 
+  void commandThread();
+
   int getNumOfJoints() const
   { return N_JOINTS; }
 
@@ -25,6 +27,12 @@ public:
     task_orient = rotm2quat(R);
     return task_orient;
   }
+
+  arma::vec getTaskForce() const
+  { return getTaskWrench().subvec(0,2); }
+
+  arma::vec getTaskTorque() const
+  { return getTaskWrench().subvec(3,5); }
 
   arma::vec getTaskWrench() const
   {
@@ -61,9 +69,13 @@ public:
   { return robot->getRobotJacobian(); }
 
   void update()
-  { robot->waitNextCycle(); }
+  { KRC_tick.wait(); }
 
-  void command();
+  arma::vec getJointsLowerLimits() const
+  { return jpos_low_lim; }
+
+  arma::vec getJointsUpperLimits() const
+  { return jpos_upper_lim; }
 
   void stop();
 
@@ -80,9 +92,22 @@ public:
 
   void setExternalStop(bool set) { robot->setExternalStop(set); }
 
+  std::vector<std::string> getJointNames() const
+  { return jnames; }
+
 private:
   std::shared_ptr<lwr4p::Robot> robot;
   ati::FTSensor ftsensor;
+
+  int N_JOINTS;
+
+  MtxVar<Mode> cmd_mode;
+
+  Semaphore mode_change;
+
+  arma::vec jpos_low_lim;
+  arma::vec jpos_upper_lim;
+  std::vector<std::string> jnames;
 };
 
 #endif // LWR4p_ROBOT_H

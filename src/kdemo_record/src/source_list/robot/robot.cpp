@@ -2,9 +2,10 @@
 
 Robot::Robot()
 {
-  mode_name.resize(2);
+  mode_name.resize(3);
   mode_name[0] = "FREEDRIVE";
   mode_name[1] = "IDLE";
+  mode_name[2] = "STOPPED";
 }
 
 Robot::~Robot()
@@ -12,30 +13,14 @@ Robot::~Robot()
 
 }
 
-
 Robot::Mode Robot::getMode() const
 {
-  return this->mode;
+  return mode.get();
 }
 
 std::string Robot::getModeName() const
 {
   return mode_name[getMode()];
-}
-
-arma::vec Robot::getJointsLowerLimits() const
-{
-  return jpos_low_lim;
-}
-
-arma::vec Robot::getJointsUpperLimits() const
-{
-  return jpos_upper_lim;
-}
-
-std::vector<std::string> Robot::getJointNames() const
-{
-  return jnames;
 }
 
 Eigen::Vector4d Robot::rotm2quat(Eigen::Matrix3d rotm) const

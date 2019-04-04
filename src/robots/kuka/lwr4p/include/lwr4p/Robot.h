@@ -29,7 +29,7 @@ public:
   explicit Robot(const char *path_to_FRI_init=NULL);
   ~Robot();
   void stop() { FRI->StopRobot(); }
-  bool isOk() { return FRI->IsMachineOK() || mode==Mode::STOPPED; }
+  bool isOk() { return (FRI->IsMachineOK() || mode==Mode::STOPPED) && !externalStop(); }
   void setMode(lwr4p::Mode mode);
   void waitNextCycle() { FRI->WaitForKRCTick(); }
   double getControlCycle() const { return cycle; }
