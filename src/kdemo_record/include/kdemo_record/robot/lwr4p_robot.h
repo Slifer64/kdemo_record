@@ -87,8 +87,7 @@ public:
   bool isOk() const
   { return (robot->isOk()); }
 
-  bool setJointsTrajectory(const arma::vec &qT, double duration)
-  { return robot->setJointsTrajectory(qT, duration); }
+  bool setJointsTrajectory(const arma::vec &qT, double duration);
 
   void setExternalStop(bool set) { robot->setExternalStop(set); }
 

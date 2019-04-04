@@ -82,15 +82,6 @@ void MainWindow::updateInterface()
       idle_btn->setStyleSheet("QPushButton { color: black; background-color: rgb(225, 225, 225) }");
       freedrive_btn->setStyleSheet("QPushButton { color: rgb(0, 0, 250); background-color: rgb(0, 255, 0); }");
 
-      save_btn->setEnabled(false);
-      save_act->setEnabled(false);
-
-      save_as_btn->setEnabled(false);
-      save_as_act->setEnabled(false);
-
-      clear_btn->setEnabled(false);
-      clear_act->setEnabled(false);
-
       plot_btn->setEnabled(false);
       plot_act->setEnabled(false);
 
@@ -105,15 +96,6 @@ void MainWindow::updateInterface()
       stopRecording();
       freedrive_btn->setStyleSheet("QPushButton { color: black; background-color: rgb(225, 225, 225) }");
       idle_btn->setStyleSheet("QPushButton { color: rgb(0, 0, 250); background-color: rgb(0, 255, 0) }");
-
-      save_btn->setEnabled(true);
-      save_act->setEnabled(true);
-
-      save_as_btn->setEnabled(true);
-      save_as_act->setEnabled(true);
-
-      clear_btn->setEnabled(true);
-      clear_act->setEnabled(true);
 
       plot_btn->setEnabled(true);
       plot_act->setEnabled(true);
@@ -424,16 +406,36 @@ void MainWindow::startRecording()
   rec = true;
 
   start_btn->setStyleSheet("QPushButton { color: rgb(0, 0, 250); background-color: rgb(0, 255, 0); }");
+
   set_rec_data_btn->setEnabled(false);
   set_rec_data_act->setEnabled(false);
+
+  save_btn->setEnabled(false);
+  save_act->setEnabled(false);
+
+  save_as_btn->setEnabled(false);
+  save_as_act->setEnabled(false);
+
+  clear_btn->setEnabled(false);
+  clear_act->setEnabled(false);
 }
 
 void MainWindow::stopRecording()
 {
   rec = false;
   start_btn->setStyleSheet(stop_btn->styleSheet());
+
   set_rec_data_btn->setEnabled(true);
   set_rec_data_act->setEnabled(true);
+
+  save_btn->setEnabled(true);
+  save_act->setEnabled(true);
+
+  save_as_btn->setEnabled(true);
+  save_as_act->setEnabled(true);
+
+  clear_btn->setEnabled(true);
+  clear_act->setEnabled(true);
 }
 
 void MainWindow::gotoStartPosePressed()
@@ -481,5 +483,5 @@ void MainWindow::modeChanged()
 {
   this->setEnabled(true);
   updateInterface();
-  showInfoMsg("Mode changed to \"" + getModeName() + "\n");
+  showInfoMsg("Mode changed to \"" + getModeName() + "\"\n");
 }

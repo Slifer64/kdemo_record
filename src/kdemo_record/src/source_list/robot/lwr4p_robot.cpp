@@ -95,6 +95,81 @@ void LWR4p_Robot::commandThread()
 
 }
 
+arma::mat get5thOrder(double t, arma::vec p0, arma::vec pT, double totalTime)
+{
+  arma::mat retTemp = arma::zeros<arma::mat>(p0.n_rows, 3);
+
+  if (t < 0)
+  {
+    // before start
+    retTemp.col(0) = p0;
+  }
+  else if (t > totalTime)
+  {
+    // after the end
+    retTemp.col(0) = pT;
+  }
+  else
+  {
+    // somewhere betweeen ...
+    // position
+    retTemp.col(0) = p0 +
+                     (pT - p0) * (10 * pow(t / totalTime, 3) -
+                     15 * pow(t / totalTime, 4) +
+                     6 * pow(t / totalTime, 5));
+    // vecolity
+    retTemp.col(1) = (pT - p0) * (30 * pow(t, 2) / pow(totalTime, 3) -
+                     60 * pow(t, 3) / pow(totalTime, 4) +
+                     30 * pow(t, 4) / pow(totalTime, 5));
+    // acceleration
+    retTemp.col(2) = (pT - p0) * (60 * t / pow(totalTime, 3) -
+                     180 * pow(t, 2) / pow(totalTime, 4) +
+                     120 * pow(t, 3) / pow(totalTime, 5));
+  }
+
+  // return vector
+  return retTemp;
+}
+
+bool LWR4p_Robot::setJointsTrajectory(const arma::vec &qT, double duration)
+{
+  // setJntPosTrajTemplate(input, duration)
+  // inital joint position values
+  arma::vec q0 = arma::zeros<arma::vec>(N_JOINTS);
+  arma::vec temp = arma::zeros<arma::vec>(N_JOINTS);
+  for (int i = 0; i < N_JOINTS; i++) {
+    temp(i) = qT(i);
+  }
+  q0 = robot->getJointPosition();
+  // keep last known robot mode
+  lwr4p::Mode prev_mode = robot->getMode();
+  arma::vec qref = q0;
+  // start controller
+  robot->setMode(lwr4p::Mode::POSITION_CONTROL);
+  // initalize time
+  double t = 0.0;
+  // the main while
+  while (t < duration)
+  {
+    if (!robot->isOk()) return false;
+
+    // compute time now
+    t += getCtrlCycle();
+    // update trajectory
+    qref = get5thOrder(t, q0, temp, duration).col(0);
+    // set joint positions
+    jpos_cmd.set(qref);
+    //setJointPosition(qref);
+
+    // waits for the next tick
+    KRC_tick.wait();
+  }
+  // reset last known robot mode
+  robot->setMode(prev_mode);
+
+  return true;
+}
+
 void LWR4p_Robot::stop()
 {
   setMode(Robot::STOPPED);
