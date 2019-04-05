@@ -142,10 +142,11 @@ bool LWR4p_Robot::setJointsTrajectory(const arma::vec &qT, double duration)
   }
   q0 = robot->getJointPosition();
   // keep last known robot mode
-  lwr4p::Mode prev_mode = robot->getMode();
+  Robot::Mode prev_mode = this->getMode();
   arma::vec qref = q0;
   // start controller
-  robot->setMode(lwr4p::Mode::POSITION_CONTROL);
+  this->setMode(Robot::IDLE);
+  // robot->setMode(lwr4p::Mode::POSITION_CONTROL);
   // initalize time
   double t = 0.0;
   // the main while
@@ -165,7 +166,7 @@ bool LWR4p_Robot::setJointsTrajectory(const arma::vec &qT, double duration)
     KRC_tick.wait();
   }
   // reset last known robot mode
-  robot->setMode(prev_mode);
+  this->setMode(prev_mode);
 
   return true;
 }

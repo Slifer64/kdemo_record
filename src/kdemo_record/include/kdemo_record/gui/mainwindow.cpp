@@ -82,11 +82,6 @@ void MainWindow::updateInterface()
       idle_btn->setStyleSheet("QPushButton { color: black; background-color: rgb(225, 225, 225) }");
       freedrive_btn->setStyleSheet("QPushButton { color: rgb(0, 0, 250); background-color: rgb(0, 255, 0); }");
 
-      plot_btn->setEnabled(false);
-      plot_act->setEnabled(false);
-
-      goto_start_pose_btn->setEnabled(false);
-
       start_btn->setEnabled(true);
       stop_btn->setEnabled(true);
 
@@ -96,11 +91,6 @@ void MainWindow::updateInterface()
       stopRecording();
       freedrive_btn->setStyleSheet("QPushButton { color: black; background-color: rgb(225, 225, 225) }");
       idle_btn->setStyleSheet("QPushButton { color: rgb(0, 0, 250); background-color: rgb(0, 255, 0) }");
-
-      plot_btn->setEnabled(true);
-      plot_act->setEnabled(true);
-
-      goto_start_pose_btn->setEnabled(true);
 
       start_btn->setEnabled(false);
       stop_btn->setEnabled(false);
@@ -407,6 +397,11 @@ void MainWindow::startRecording()
 
   start_btn->setStyleSheet("QPushButton { color: rgb(0, 0, 250); background-color: rgb(0, 255, 0); }");
 
+  goto_start_pose_btn->setEnabled(false);
+
+  plot_btn->setEnabled(false);
+  plot_act->setEnabled(false);
+
   set_rec_data_btn->setEnabled(false);
   set_rec_data_act->setEnabled(false);
 
@@ -424,6 +419,11 @@ void MainWindow::stopRecording()
 {
   rec = false;
   start_btn->setStyleSheet(stop_btn->styleSheet());
+
+  goto_start_pose_btn->setEnabled(true);
+
+  plot_btn->setEnabled(true);
+  plot_act->setEnabled(true);
 
   set_rec_data_btn->setEnabled(true);
   set_rec_data_act->setEnabled(true);
