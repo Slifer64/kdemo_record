@@ -50,43 +50,48 @@ public:
     bool record() const { return rec; }
 
     bool currentPoseAsStart() const { return current_pose_as_start(); }
-    void resetCurrentPoseAsStart() { current_pose_as_start = false; }
+    void sendSetStartPoseAck(bool success, const QString &msg)  { emit setStartPoseAckSignal(success,msg); update_gui_sem.wait(); }
 
     bool gotoStartPose() const { return goto_start_pose(); }
-    void resetGotoStartPose() { goto_start_pose=false; }
+    void sendGotoStartPoseAck(bool success, const QString &msg) { emit gotoStartPoseAckSignal(success,msg); update_gui_sem.wait(); }
 
     bool saveData() const { return save_data(); }
-    void resetSaveData() { save_data=false; }
+    void sendSaveAck(bool success, const QString &msg) { emit saveAckSignal(success,msg); update_gui_sem.wait(); }
     std::string getSaveDataPath() const { return save_data_path; }
 
     bool clearData() const { return clear_data(); }
-    void resetClearData() { clear_data=false; }
+    void sendClearAck(bool success, const QString &msg) { emit clearAckSignal(success,msg); update_gui_sem.wait(); }
 
     bool record(DataType::ID id) const { return data_rec_dialog->rec[id]; }
 
 signals:
-    void errMsgSignal(const QString &msg);
-    void infoMsgSignal(const QString &msg);
-    void terminationSignal(const QString &msg);
+    void terminateAppSignal(const QString &msg);
     void modeChangedSignal();
+    void saveAckSignal(bool success, const QString &msg);
+    void clearAckSignal(bool success, const QString &msg);
+    void gotoStartPoseAckSignal(bool success, const QString &msg);
+    void setStartPoseAckSignal(bool success, const QString &msg);
 
 private slots:
     void saveTriggered();
     void saveAsTriggered();
     void clearTriggered();
-    void setRecordedData();
     void viewPoseTriggered();
     void viewJointsTriggered();
     void plotTriggered();
-    void startRecording();
-    void stopRecording();
+    void setRecordedDataPressed();
+    void startRecordingPressed();
+    void stopRecordingPressed();
     void gotoStartPosePressed();
     void setStartPosePressed();
 
-    void showSentErrMsg(const QString &msg);
-    void showSentInfoMsg(const QString &msg);
-    void terminateApp(const QString &msg);
-    void modeChanged();
+    void saveAckSlot(bool success, const QString &msg);
+    void clearAckSlot(bool success, const QString &msg);
+    void startPoseAckSlot(bool success, const QString &msg);
+    void gotoStartPoseAckSlot(bool success, const QString &msg);
+
+    void terminateAppSlot(const QString &msg);
+    void modeChangedSlot();
 
 private:
     QWidget *central_widget;
@@ -94,15 +99,17 @@ private:
 
     std::map<Mode, QString> mode_name;
 
+    Semaphore update_gui_sem;
+
     Mode mode;
 
     bool rec;
     bool is_running;
 
-    MtxFlag goto_start_pose;
-    MtxFlag current_pose_as_start;
-    MtxFlag save_data;
-    MtxFlag clear_data;
+    MtxVar<bool> goto_start_pose;
+    MtxVar<bool> current_pose_as_start;
+    MtxVar<bool> save_data;
+    MtxVar<bool> clear_data;
     std::string save_data_path;
     std::string default_save_data_path;
 
@@ -162,9 +169,14 @@ private:
     // ======  functions  ========
     void createWidgets();
     void createLayouts();
+    void createConnections();
     void createActions();
     void createMenus();
     void updateInterface();
+
+    void updateInterfaceOnGotoStartPose();
+    void updateInterfaceOnSaveData();
+    void updateInterfaceOnClearData();
 
     void closeEvent(QCloseEvent *event) override;
 };

@@ -79,7 +79,7 @@ void KDemoRecord::run()
     // =======> Check if robot is ok
     if (!robot->isOk())
     {
-      gui->terminationSignal("An error occured on the robot.\nThe application will terminate.");
+      gui->terminateAppSignal("An error occured on the robot.\nThe application will terminate.");
       break;
     }
 
@@ -87,30 +87,26 @@ void KDemoRecord::run()
 
     if (gui->gotoStartPose())
     {
-      if (!gotoStartPose()) gui->errMsgSignal(err_msg.c_str());
-      else gui->infoMsgSignal("Reached start pose!");
-      gui->resetGotoStartPose();
+      if (!gotoStartPose()) gui->sendGotoStartPoseAck(false, err_msg.c_str());
+      else gui->sendGotoStartPoseAck(true, "Reached start pose!");
     }
 
     if (gui->saveData())
     {
-      if (! rec_data->saveData(gui->getSaveDataPath()) ) gui->errMsgSignal(rec_data->getErrMsg().c_str());
-      else gui->infoMsgSignal("The recorded data were successfully saved!");
-      gui->resetSaveData();
+      if (! rec_data->saveData(gui->getSaveDataPath()) ) gui->sendSaveAck(false, rec_data->getErrMsg().c_str());
+      else gui->sendSaveAck(true, "The recorded data were successfully saved!");
     }
 
     if (gui->clearData())
     {
       rec_data->clearData();
-      gui->resetClearData();
-      gui->infoMsgSignal("All recorded data were deleted!");
+      gui->sendClearAck(true, "All recorded data were deleted!");
     }
 
     if (gui->currentPoseAsStart())
     {
       q_start = robot->getJointsPosition();
-      gui->resetCurrentPoseAsStart();
-      gui->infoMsgSignal("Registered current pose as start!");
+      gui->sendSetStartPoseAck(true, "Registered current pose as start!");
     }
 
     robot->update();
@@ -128,10 +124,8 @@ void KDemoRecord::run()
 bool KDemoRecord::gotoStartPose()
 {
   arma::vec q = robot->getJointsPosition();
-  double duration = arma::max(arma::abs(q-q_start))*7.0/3.14;
-  robot->setJointsTrajectory(q_start, duration);
-
-  return true;
+  double duration = arma::max(arma::abs(q-q_start))*8.0/3.14159;
+  return robot->setJointsTrajectory(q_start, duration);
 }
 
 void KDemoRecord::record()

@@ -32,6 +32,8 @@ MainWindow::MainWindow(const Robot *robot, const RecData *rec_data, QWidget *par
 
   createMenus();
 
+  createConnections();
+
   rec = false;
   goto_start_pose = false;
   current_pose_as_start = false;
@@ -88,7 +90,7 @@ void MainWindow::updateInterface()
       break;
 
     case IDLE:
-      stopRecording();
+      stopRecordingPressed();
       freedrive_btn->setStyleSheet("QPushButton { color: black; background-color: rgb(225, 225, 225) }");
       idle_btn->setStyleSheet("QPushButton { color: rgb(0, 0, 250); background-color: rgb(0, 255, 0) }");
 
@@ -104,34 +106,69 @@ void MainWindow::createActions()
   save_act = new QAction(tr("&Save"), this);
   save_act->setShortcut(QKeySequence("Ctrl+S"));
   save_act->setStatusTip(tr("Saves the recorded data to default location."));
-  connect(save_act, &QAction::triggered, this, &MainWindow::saveTriggered);
 
   save_as_act = new QAction(tr("Save As..."), this);
   save_as_act->setShortcut(QKeySequence("Shift+Ctrl+S"));
   save_as_act->setStatusTip(tr("Saves the recorded data to a user specified path."));
-  connect(save_as_act, &QAction::triggered, this, &MainWindow::saveAsTriggered);
 
   clear_act = new QAction(tr("&Clear"), this);
   clear_act->setShortcut(QKeySequence("Ctrl+C"));
   clear_act->setStatusTip(tr("Clears the recorded data."));
-  connect(clear_act, &QAction::triggered, this, &MainWindow::clearTriggered);
 
   set_rec_data_act = new QAction(tr("Set recorded data"), this);
   // set_rec_data_act->setShortcut(QKeySequence("Ctrl+C"));
   set_rec_data_act->setStatusTip(tr("Sets which data to record."));
-  connect(set_rec_data_act, &QAction::triggered, this, &MainWindow::setRecordedData);
 
   view_pose_act = new QAction(tr("View pose"), this);
   view_pose_act->setStatusTip(tr("Opens a window displaying the robot's end-effector pose."));
-  connect(view_pose_act, &QAction::triggered, this, &MainWindow::viewPoseTriggered);
 
   view_joints_act = new QAction(tr("View joints"), this);
   view_joints_act->setStatusTip(tr("Opens a window with sliders displaying the robot's joints position."));
-  connect(view_joints_act, &QAction::triggered, this, &MainWindow::viewJointsTriggered);
 
   plot_act = new QAction(tr("plot"), this);
   plot_act->setStatusTip(tr("Opens a window where the user can choose to plot recorded data."));
-  connect(plot_act, &QAction::triggered, this, &MainWindow::plotTriggered);
+}
+
+void MainWindow::createConnections()
+{
+  QObject::connect( save_btn, &QPushButton::clicked, this, &MainWindow::saveTriggered );
+  QObject::connect( save_act, &QAction::triggered, this, &MainWindow::saveTriggered );
+
+  QObject::connect( save_as_btn, &QPushButton::clicked, this, &MainWindow::saveAsTriggered );
+  QObject::connect( save_as_act, &QAction::triggered, this, &MainWindow::saveAsTriggered );
+
+  QObject::connect( clear_btn, &QPushButton::clicked, this, &MainWindow::clearTriggered );
+  QObject::connect( clear_act, &QAction::triggered, this, &MainWindow::clearTriggered );
+
+  QObject::connect( set_rec_data_btn, &QPushButton::clicked, this, &MainWindow::setRecordedDataPressed );
+  QObject::connect( set_rec_data_act, &QAction::triggered, this, &MainWindow::setRecordedDataPressed );
+
+  QObject::connect( view_pose_btn, &QPushButton::clicked, this, &MainWindow::viewPoseTriggered );
+  QObject::connect( view_pose_act, &QAction::triggered, this, &MainWindow::viewPoseTriggered );
+
+  QObject::connect( view_jpos_btn, &QPushButton::clicked, this, &MainWindow::viewJointsTriggered );
+  QObject::connect( view_joints_act, &QAction::triggered, this, &MainWindow::viewJointsTriggered );
+
+  QObject::connect( plot_btn, &QPushButton::clicked, this, &MainWindow::plotTriggered );
+  QObject::connect( plot_act, &QAction::triggered, this, &MainWindow::plotTriggered );
+
+  QObject::connect( freedrive_btn, &QPushButton::clicked, [this](){ this->setMode(FREEDRIVE);} );
+  QObject::connect( idle_btn, &QPushButton::clicked, [this](){ this->setMode(IDLE);} );
+
+  QObject::connect( start_btn, &QPushButton::clicked, this, &MainWindow::startRecordingPressed );
+  QObject::connect( stop_btn, &QPushButton::clicked, this, &MainWindow::stopRecordingPressed );
+
+  QObject::connect( set_start_pose_btn, &QPushButton::clicked, this, &MainWindow::setStartPosePressed );
+  QObject::connect( goto_start_pose_btn, &QPushButton::clicked, this, &MainWindow::gotoStartPosePressed );
+
+  QObject::connect( emergency_stop_btn, SIGNAL(clicked()), this, SLOT(close()) );
+
+  QObject::connect( this, SIGNAL(terminateAppSignal(const QString &)), this, SLOT(terminateAppSlot(const QString &)) );
+  QObject::connect( this, SIGNAL(modeChangedSignal()), this, SLOT(modeChangedSlot()) );
+  QObject::connect( this, SIGNAL(gotoStartPoseAckSignal(bool , const QString &)), this, SLOT(gotoStartPoseAckSlot(bool , const QString &)) );
+  QObject::connect( this, SIGNAL(saveAckSignal(bool , const QString &)), this, SLOT(saveAckSlot(bool , const QString &)) );
+  QObject::connect( this, SIGNAL(clearAckSignal(bool , const QString &)), this, SLOT(clearAckSlot(bool , const QString &)) );
+  QObject::connect( this, SIGNAL(setStartPoseAckSignal(bool , const QString &)), this, SLOT(startPoseAckSlot(bool , const QString &)) );
 }
 
 void MainWindow::createMenus()
@@ -249,32 +286,6 @@ void MainWindow::createWidgets()
   set_rec_data_btn = new QPushButton;
   set_rec_data_btn->setText("set recorded data");
   set_rec_data_btn->setFont(font1);
-
-  // ===========  set up connections  ===========
-  QObject::connect(save_btn, &QPushButton::clicked, this, &MainWindow::saveTriggered);
-  QObject::connect(save_as_btn, &QPushButton::clicked, this, &MainWindow::saveAsTriggered);
-  QObject::connect(clear_btn, &QPushButton::clicked, this, &MainWindow::clearTriggered);
-
-  QObject::connect(set_rec_data_btn, &QPushButton::clicked, this, &MainWindow::setRecordedData);
-  QObject::connect(view_pose_btn, &QPushButton::clicked, this, &MainWindow::viewPoseTriggered);
-  QObject::connect(view_jpos_btn, &QPushButton::clicked, this, &MainWindow::viewJointsTriggered);
-  QObject::connect(plot_btn, &QPushButton::clicked, this, &MainWindow::plotTriggered);
-
-  QObject::connect(freedrive_btn, &QPushButton::clicked, [this](){ this->setMode(FREEDRIVE);});
-  QObject::connect(idle_btn, &QPushButton::clicked, [this](){ this->setMode(IDLE);});
-
-  QObject::connect(start_btn, &QPushButton::clicked, this, &MainWindow::startRecording);
-  QObject::connect(stop_btn, &QPushButton::clicked, this, &MainWindow::stopRecording);
-
-  QObject::connect(set_start_pose_btn, &QPushButton::clicked, this, &MainWindow::setStartPosePressed);
-  QObject::connect(goto_start_pose_btn, &QPushButton::clicked, this, &MainWindow::gotoStartPosePressed);
-
-  QObject::connect( this, SIGNAL(errMsgSignal(const QString &)), this, SLOT(showSentErrMsg(const QString &)) );
-  QObject::connect( this, SIGNAL(infoMsgSignal(const QString &)), this, SLOT(showSentInfoMsg(const QString &)) );
-  QObject::connect( this, SIGNAL(terminationSignal(const QString &)), this, SLOT(terminateApp(const QString &)) );
-  QObject::connect( this, SIGNAL(modeChangedSignal()), this, SLOT(modeChanged()) );
-
-  QObject::connect( emergency_stop_btn, SIGNAL(clicked()), this, SLOT(close()) );
 }
 
 void MainWindow::createLayouts()
@@ -329,6 +340,7 @@ void MainWindow::saveTriggered()
 
   save_data_path = default_save_data_path;
   save_data = true;
+  updateInterfaceOnSaveData();
 }
 
 void MainWindow::saveAsTriggered()
@@ -344,14 +356,75 @@ void MainWindow::saveAsTriggered()
 
   save_data_path = save_as_data_path.toStdString();
   save_data = true;
+  updateInterfaceOnSaveData();
+}
+
+void MainWindow::saveAckSlot(bool success, const QString &msg)
+{
+  save_data = false;
+
+  success ? showInfoMsg(msg) : showErrorMsg(msg);
+
+  update_gui_sem.notify();
+
+  updateInterfaceOnSaveData();
+}
+
+void MainWindow::updateInterfaceOnSaveData()
+{
+  bool set = !save_data();
+
+  start_btn->setEnabled(set);
+  stop_btn->setEnabled(set);
+
+  save_btn->setEnabled(set);
+  save_act->setEnabled(set);
+
+  save_as_btn->setEnabled(set);
+  save_as_act->setEnabled(set);
+
+  clear_btn->setEnabled(set);
+  clear_act->setEnabled(set);
 }
 
 void MainWindow::clearTriggered()
 {
   clear_data = true;
+  updateInterfaceOnClearData();
 }
 
-void MainWindow::setRecordedData()
+void MainWindow::clearAckSlot(bool success, const QString &msg)
+{
+  clear_data = false;
+
+  success ? showInfoMsg(msg) : showErrorMsg(msg);
+
+  update_gui_sem.notify();
+
+  updateInterfaceOnClearData();
+}
+
+void MainWindow::updateInterfaceOnClearData()
+{
+  bool set = !clear_data();
+
+  start_btn->setEnabled(set);
+  stop_btn->setEnabled(set);
+
+  save_btn->setEnabled(set);
+  save_act->setEnabled(set);
+
+  save_as_btn->setEnabled(set);
+  save_as_act->setEnabled(set);
+
+  clear_btn->setEnabled(set);
+  clear_act->setEnabled(set);
+
+  plot_btn->setEnabled(set);
+  plot_act->setEnabled(set);
+}
+
+void MainWindow::setRecordedDataPressed()
 {
   data_rec_dialog->launch();
 }
@@ -368,16 +441,16 @@ void MainWindow::viewJointsTriggered()
 
 void MainWindow::plotTriggered()
 {
-  if (getMode() != IDLE)
-  {
-    showWarningMsg("The mode must be \"IDLE\" to plot recorded data.");
-    return;
-  }
+  // if (getMode() != IDLE)
+  // {
+  //   showWarningMsg("The mode must be \"IDLE\" to plot recorded data.");
+  //   return;
+  // }
 
   data_plot_dialog->launch();
 }
 
-void MainWindow::startRecording()
+void MainWindow::startRecordingPressed()
 {
   if (rec) return;
 
@@ -415,7 +488,7 @@ void MainWindow::startRecording()
   clear_act->setEnabled(false);
 }
 
-void MainWindow::stopRecording()
+void MainWindow::stopRecordingPressed()
 {
   rec = false;
   start_btn->setStyleSheet(stop_btn->styleSheet());
@@ -449,11 +522,74 @@ void MainWindow::gotoStartPosePressed()
   // if (getMode()==FREEDRIVE) setMode(IDLE);
 
   goto_start_pose = true;
+  updateInterfaceOnGotoStartPose();
+}
+
+void MainWindow::gotoStartPoseAckSlot(bool success, const QString &msg)
+{
+  goto_start_pose = false;
+
+  success ? showInfoMsg(msg) : showErrorMsg(msg);
+
+  update_gui_sem.notify();
+
+  updateInterfaceOnGotoStartPose();
+}
+
+void MainWindow::updateInterfaceOnGotoStartPose()
+{
+  bool set = !goto_start_pose();
+
+  freedrive_btn->setEnabled(set);
+  idle_btn->setEnabled(set);
+  if (set)
+  {
+    if (getMode()==FREEDRIVE) freedrive_btn->setStyleSheet("QPushButton { color: rgb(0, 0, 250); background-color: rgb(0, 255, 0); }");
+    else if (getMode()==IDLE) idle_btn->setStyleSheet("QPushButton { color: rgb(0, 0, 250); background-color: rgb(0, 255, 0); }");
+  }
+  else
+  {
+    freedrive_btn->setStyleSheet("QPushButton { color: black; background-color: rgb(225, 225, 225) }");
+    idle_btn->setStyleSheet("QPushButton { color: black; background-color: rgb(225, 225, 225) }");
+  }
+
+  start_btn->setEnabled(set);
+  stop_btn->setEnabled(set);
+
+  goto_start_pose_btn->setEnabled(set);
+  set_start_pose_btn->setEnabled(set);
+
+  plot_btn->setEnabled(set);
+  plot_act->setEnabled(set);
+
+  set_rec_data_btn->setEnabled(set);
+  set_rec_data_act->setEnabled(set);
+
+  save_btn->setEnabled(set);
+  save_act->setEnabled(set);
+
+  save_as_btn->setEnabled(set);
+  save_as_act->setEnabled(set);
+
+  clear_btn->setEnabled(set);
+  clear_act->setEnabled(set);
 }
 
 void MainWindow::setStartPosePressed()
 {
   current_pose_as_start = true;
+  set_start_pose_btn->setEnabled(false);
+}
+
+void MainWindow::startPoseAckSlot(bool success, const QString &msg)
+{
+  current_pose_as_start = false;
+
+  success ? showInfoMsg(msg) : showErrorMsg(msg);
+
+  update_gui_sem.notify();
+
+  set_start_pose_btn->setEnabled(true);
 }
 
 void MainWindow::closeEvent(QCloseEvent *event)
@@ -463,23 +599,13 @@ void MainWindow::closeEvent(QCloseEvent *event)
   QMainWindow::closeEvent(event);
 }
 
-void MainWindow::showSentErrMsg(const QString &msg)
-{
-  showErrorMsg(msg);
-}
-
-void MainWindow::showSentInfoMsg(const QString &msg)
-{
-  showInfoMsg(msg);
-}
-
-void MainWindow::terminateApp(const QString &msg)
+void MainWindow::terminateAppSlot(const QString &msg)
 {
   showErrorMsg(msg);
   this->close();
 }
 
-void MainWindow::modeChanged()
+void MainWindow::modeChangedSlot()
 {
   this->setEnabled(true);
   updateInterface();

@@ -12,55 +12,7 @@
 #include <condition_variable>
 #include <thread>
 
-class Semaphore
-{
-private:
-  std::mutex mutex_;
-  std::condition_variable condition_;
-  // unsigned long count_ = 0; // Initialized as locked.
-  bool count_ = false;  // Initialized as locked.
-
-public:
-  void notify()
-  {
-    std::lock_guard<decltype(mutex_)> lock(mutex_);
-    // ++count_;
-    count_ = true;
-    condition_.notify_one();
-  }
-
-  void wait()
-  {
-    std::unique_lock<decltype(mutex_)> lock(mutex_);
-    while(!count_) // Handle spurious wake-ups.
-      condition_.wait(lock);
-    // --count_;
-    count_ = false;
-  }
-
-  bool try_wait()
-  {
-    std::lock_guard<decltype(mutex_)> lock(mutex_);
-    if(count_)
-    {
-      // --count_;
-      count_ = false;
-      return true;
-    }
-    return false;
-  }
-};
-
-template<typename T>
-class MtxVar
-{
-public:
-  T get() const { std::unique_lock<std::mutex> lck(*(const_cast<std::mutex *>(&cmd_mtx))); return cmd; }
-  void set(const T &new_cmd) { std::unique_lock<std::mutex> lck(cmd_mtx); cmd=new_cmd; }
-private:
-  std::mutex cmd_mtx;
-  T cmd;
-};
+#include "utils.h"
 
 class Robot
 {

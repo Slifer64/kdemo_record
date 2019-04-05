@@ -22,7 +22,7 @@ DummyRobot::DummyRobot()
   jnames.resize(N_JOINTS);
   for (int i=0;i<N_JOINTS;i++) jnames[i] = QString("lwr_joint_" + QString::number(i+1)).toStdString();
 
-  jpos_target = (2*arma::vec().randu(N_JOINTS)-1) % jpos_upper_lim;
+  jpos_target = (2*arma::vec().randu(N_JOINTS)-1) % jpos_upper_lim * 3.14159/180;
   target_reached = arma::uvec().zeros(N_JOINTS);
 
   setExternalStop(false);
@@ -114,7 +114,7 @@ void DummyRobot::setJointTorque(const arma::vec &jtorque)
     }
   }
 
-  double djpos = 0.08;
+  double djpos = 0.002;
   jpos = jpos + djpos * arma::sign(jpos_target - jpos);
   target_reached = (arma::abs(jpos - jpos_target) < djpos);
 
@@ -128,15 +128,17 @@ void DummyRobot::setJointTorque(const arma::vec &jtorque)
   quat(3) = 0.35 * std::cos(jpos(6)) + 0.3 * std::sin(jpos(5)) + 0.35 * std::cos(jpos(2));
   quat = quat / (arma::norm(quat) + 1e-16);
 
-  force(0) = 2 * std::sin(2 * pi * 1.5 * t);
-  force(1) = 3.5 * std::cos(2 * pi * 1 * 1.2 * t);
-  force(2) = 1.5 * std::sin(2 * pi * 1.8 * t);
+  force(0) = 2 * std::sin(2 * pi * 0.5 * t);
+  force(1) = 3.5 * std::cos(2 * pi * 0.1 * 1.2 * t);
+  force(2) = 1.5 * std::sin(2 * pi * 0.4 * t);
+  force += 0.2*arma::randn(3,1);
 
-  torque(0) = 0.8 * std::cos(2 * pi * 2.5 * t);
-  torque(1) = 1.1 * std::sin(2 * pi * 1 * 2.2 * t);
-  torque(2) = 0.6 * std::cos(2 * pi * 2.8 * t);
+  torque(0) = 0.8 * std::cos(2 * pi * 0.5 * t);
+  torque(1) = 1.1 * std::sin(2 * pi * 0.2 * t);
+  torque(2) = 0.6 * std::cos(2 * pi * 0.3 * t);
+  torque += 0.2*arma::randn(3,1);
 
-  this->jtorque = arma::vec({0.5, 0.4, 0.33, 0.25, 0.6, 0.45, 0.38})*std::sin(2 * pi * 1.5 * t);
+  this->jtorque = arma::vec({0.5, 0.4, 0.33, 0.25, 0.6, 0.45, 0.38})*std::sin(2 * pi * 0.5 * t) + 0.05*arma::randn(N_JOINTS,1);
 }
 
 void DummyRobot::setJointPosition(const arma::vec &jpos)
@@ -152,16 +154,28 @@ void DummyRobot::stop()
 bool DummyRobot::setJointsTrajectory(const arma::vec &qT, double duration)
 {
   bool err_occured = false;
-  while (arma::norm(jpos-qT)<0.1)
+
+  Mode prev_mode = getMode();
+  setMode(IDLE);
+
+  while (arma::norm(jpos-qT)>0.01)
   {
-    jpos = jpos + 0.01*(qT-jpos);
+    arma::vec djpos = 1*(qT-jpos);
+    arma::vec sign = arma::sign(djpos);
+    arma::uvec ind = arma::find(arma::abs(djpos)>1);
+    djpos.elem(ind) = sign.elem(ind) % arma::vec().ones(ind.size())*1;
+
+    jpos = jpos + djpos*Ts;
+    jpos_cmd = jpos;
     update();
     if (!isOk())
     {
       err_occured = true;
-      break;
+      return false;
     }
   }
+
+  setMode(prev_mode);
 
   return !err_occured;
 }
