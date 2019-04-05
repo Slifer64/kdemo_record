@@ -26,6 +26,7 @@ LWR4p_Robot::LWR4p_Robot()
   ftsensor.setTimeout(1.0);
   ftsensor.setBias();
 
+  ext_stop = false;
   mode.set(Robot::STOPPED);
   cmd_mode.set(mode.get());
   jpos_cmd.set(robot->getJointPosition());
@@ -135,38 +136,36 @@ arma::mat get5thOrder(double t, arma::vec p0, arma::vec pT, double totalTime)
 
 bool LWR4p_Robot::setJointsTrajectory(const arma::vec &qT, double duration)
 {
+  // keep last known robot mode
+  Robot::Mode prev_mode = this->getMode();
+  // start controller
+  this->setMode(Robot::IDLE);
+  // std::cerr << "[LWR4p_Robot::setJointsTrajectory]: Mode changed to \"IDLE\"!\n";
+
   // waits for the next tick
   update();
 
   arma::vec q0 = robot->getJointPosition();
   arma::vec qref = q0;
+  // std::cerr << "q0 = " << q0.t()*180/3.14159 << "\n";
+  // std::cerr << "duration = " << duration << " sec\n";
 
-  // keep last known robot mode
-  Robot::Mode prev_mode = this->getMode();
-  // start controller
-  this->setMode(Robot::IDLE);
-
-  std::cerr << "[LWR4p_Robot::setJointsTrajectory]: Mode changed to \"IDLE\"!\n";
-
-  std::cerr << "q0 = " << q0.t()*180/3.14159 << "\n";
-  std::cerr << "duration = " << duration << " sec\n";
-
-  int count = 0;
   // robot->setMode(lwr4p::Mode::POSITION_CONTROL);
   // initalize time
   double t = 0.0;
   // the main while
   while (t < duration)
   {
-    if (!robot->isOk()) return false;
+    if (!isOk())
+    {
+      err_msg = "An error occured on the robot!";
+      return false;
+    }
 
     // compute time now
     t += getCtrlCycle();
     // update trajectory
     qref = get5thOrder(t, q0, qT, duration).col(0);
-
-    if (count%50 == 0) std::cerr << "||qref-q|| = " << arma::abs(qref-robot->getJointPosition()).t()*180/3.14159 << "\n";
-    count++;
 
     // set joint positions
     jpos_cmd.set(qref);
@@ -178,12 +177,13 @@ bool LWR4p_Robot::setJointsTrajectory(const arma::vec &qT, double duration)
   // reset last known robot mode
   this->setMode(prev_mode);
 
-  std::cerr << "[LWR4p_Robot::setJointsTrajectory]: Mode restored to previous mode!\n";
+  // std::cerr << "[LWR4p_Robot::setJointsTrajectory]: Mode restored to previous mode!\n";
 
   return true;
 }
 
 void LWR4p_Robot::stop()
 {
-  setMode(Robot::STOPPED);
+  // setMode(Robot::STOPPED);
+  robot->stop();
 }

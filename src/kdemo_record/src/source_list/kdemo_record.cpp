@@ -25,6 +25,8 @@ KDemoRecord::KDemoRecord()
     exit(-1);
   }
 
+  robot->stop();
+
   rec_data.reset(new RecData);
 
   // std::cerr << "=============> Launching GUI...\n";
@@ -79,7 +81,7 @@ void KDemoRecord::run()
     // =======> Check if robot is ok
     if (!robot->isOk())
     {
-      gui->terminateAppSignal("An error occured on the robot.\nThe application will terminate.");
+      gui->terminateAppSignal("An error occured on the robot.\nThe program will terminate...");
       break;
     }
 
@@ -87,8 +89,8 @@ void KDemoRecord::run()
 
     if (gui->gotoStartPose())
     {
-      if (!gotoStartPose()) gui->sendGotoStartPoseAck(false, err_msg.c_str());
-      else gui->sendGotoStartPoseAck(true, "Reached start pose!");
+      if (gotoStartPose()) gui->sendGotoStartPoseAck(true, "Reached start pose!");
+      else gui->sendGotoStartPoseAck(false, "Failed to reach start pose...");
     }
 
     if (gui->saveData())
@@ -110,7 +112,6 @@ void KDemoRecord::run()
     }
 
     robot->update();
-    // robot->command();
   }
 
   if (robot->isOk()) robot->stop();
@@ -123,6 +124,7 @@ void KDemoRecord::run()
 
 bool KDemoRecord::gotoStartPose()
 {
+  robot->update();
   arma::vec q = robot->getJointsPosition();
   double duration = arma::max(arma::abs(q-q_start))*8.0/3.14159;
   return robot->setJointsTrajectory(q_start, duration);

@@ -18,6 +18,11 @@ public:
   int getNumOfJoints() const
   { return N_JOINTS; }
 
+  std::string getErrMsg() const
+  {
+    return "N/A";
+  }
+
   arma::vec getTaskPosition() const
   { return pos; }
 

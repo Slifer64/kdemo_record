@@ -28,7 +28,7 @@ class Robot
 public:
   explicit Robot(const char *path_to_FRI_init=NULL);
   ~Robot();
-  void stop() { FRI->StopRobot(); }
+  void stop() { FRI->StopRobot(); FRI->SetKRLIntValue(15,40); }
   bool isOk() { return (FRI->IsMachineOK() || mode==Mode::STOPPED) && !externalStop(); }
   void setMode(lwr4p::Mode mode);
   void waitNextCycle() { FRI->WaitForKRCTick(); }

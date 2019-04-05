@@ -17,6 +17,11 @@ public:
   int getNumOfJoints() const
   { return N_JOINTS; }
 
+  std::string getErrMsg() const
+  {
+    return err_msg;
+  }
+
   arma::vec getTaskPosition() const
   { return robot->getTaskPosition(); }
 
@@ -69,7 +74,7 @@ public:
   { return robot->getRobotJacobian(); }
 
   void update()
-  { KRC_tick.wait(); }
+  { if (isOk()) KRC_tick.wait(); }
 
   arma::vec getJointsLowerLimits() const
   { return jpos_low_lim; }
@@ -85,11 +90,11 @@ public:
   { return robot->getControlCycle(); }
 
   bool isOk() const
-  { return (robot->isOk()); }
+  { return (robot->isOk() && !ext_stop()); }
 
   bool setJointsTrajectory(const arma::vec &qT, double duration);
 
-  void setExternalStop(bool set) { robot->setExternalStop(set); }
+  void setExternalStop(bool set) { ext_stop=set; robot->stop(); }
 
   std::vector<std::string> getJointNames() const
   { return jnames; }
@@ -97,6 +102,10 @@ public:
 private:
   std::shared_ptr<lwr4p::Robot> robot;
   ati::FTSensor ftsensor;
+
+  MtxVar<bool> ext_stop;
+
+  std::string err_msg;
 
   int N_JOINTS;
 

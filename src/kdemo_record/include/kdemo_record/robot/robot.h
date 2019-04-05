@@ -31,6 +31,8 @@ public:
   Robot::Mode getMode() const;
   std::string getModeName() const;
 
+  virtual std::string getErrMsg() const = 0;
+
   virtual int getNumOfJoints() const = 0;
 
   virtual arma::vec getTaskPosition() const = 0;

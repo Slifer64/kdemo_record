@@ -161,7 +161,7 @@ void MainWindow::createConnections()
   QObject::connect( set_start_pose_btn, &QPushButton::clicked, this, &MainWindow::setStartPosePressed );
   QObject::connect( goto_start_pose_btn, &QPushButton::clicked, this, &MainWindow::gotoStartPosePressed );
 
-  QObject::connect( emergency_stop_btn, SIGNAL(clicked()), this, SLOT(close()) );
+  QObject::connect( emergency_stop_btn, &QPushButton::clicked, [this](){ const_cast<Robot *>(this->robot)->setExternalStop(true); this->setEnabled(false); } );
 
   QObject::connect( this, SIGNAL(terminateAppSignal(const QString &)), this, SLOT(terminateAppSlot(const QString &)) );
   QObject::connect( this, SIGNAL(modeChangedSignal()), this, SLOT(modeChangedSlot()) );
@@ -596,6 +596,7 @@ void MainWindow::closeEvent(QCloseEvent *event)
 {
   is_running = false;
   const_cast<Robot *>(robot)->setExternalStop(true);
+  update_gui_sem.notify(); // unlock possible waits...
   QMainWindow::closeEvent(event);
 }
 

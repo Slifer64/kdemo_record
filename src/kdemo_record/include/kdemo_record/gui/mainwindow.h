@@ -115,7 +115,6 @@ private:
 
     const Robot *robot;
     const RecData *rec_data;
-
     DataRecDialog *data_rec_dialog;
     DataPlotDialog *data_plot_dialog;
     ViewPoseDialog *view_pose_dialog;
