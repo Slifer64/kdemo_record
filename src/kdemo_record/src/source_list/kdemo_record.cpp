@@ -25,8 +25,6 @@ KDemoRecord::KDemoRecord()
     exit(-1);
   }
 
-  robot->stop();
-
   rec_data.reset(new RecData);
 
   // std::cerr << "=============> Launching GUI...\n";
