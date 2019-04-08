@@ -2,7 +2,11 @@ function convertToMat(filename)
 
 if (nargin<1), filename = 'data.bin'; end
 
-addpath('utils/');
+MAIN_PATH = 'utils/';
+addpath(MAIN_PATH);
+addpath_io_lib(MAIN_PATH);
+addpath_plot_lib(MAIN_PATH);
+addpath_argValidation_lib(MAIN_PATH);
 
 TOOL_POS = 0;
 TOOL_ORIENT = 1;
