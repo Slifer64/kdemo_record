@@ -6,6 +6,7 @@
 #include <thread>
 #include <chrono>
 #include <mutex>
+#include <algorithm>
 
 #include <kdemo_record/robot/lwr4p_robot.h>
 #include <kdemo_record/robot/dummy_robot.h>
@@ -124,7 +125,7 @@ bool KDemoRecord::gotoStartPose()
 {
   robot->update();
   arma::vec q = robot->getJointsPosition();
-  double duration = arma::max(arma::abs(q-q_start))*8.0/3.14159;
+  double duration = std::max(arma::max(arma::abs(q-q_start))*8.0/3.14159, 2.5);
   return robot->setJointsTrajectory(q_start, duration);
 }
 
