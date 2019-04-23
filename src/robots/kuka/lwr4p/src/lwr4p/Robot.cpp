@@ -6,6 +6,8 @@
 #include <iostream>
 #include <string>
 
+#include <ros/package.h>
+
 namespace lwr4p
 {
 
@@ -14,7 +16,10 @@ namespace lwr4p
     ext_stop = false;
 
     if (path_to_FRI_init == NULL)
-      FRI.reset(new FastResearchInterface("/home/user/lwr/980500-FRI-Driver.init"));
+    {
+      std::string path = ros::package::getPath("lwr4p") + "/FRILibrary/980500-FRI-Driver.init";
+      FRI.reset(new FastResearchInterface(path.c_str()));
+    }
     else
       FRI.reset(new FastResearchInterface(path_to_FRI_init));
 
