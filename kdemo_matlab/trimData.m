@@ -18,7 +18,7 @@ for j=1:length(vel_norm)
    i1 = i1 + 1;
 end
 
-i2 = length(vel_norm)+1;
+i2 = length(vel_norm);
 for j=length(vel_norm):-1:1
    if vel_norm(j)>=vel_thres, break; end
    i2 = i2 - 1;

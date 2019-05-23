@@ -2,7 +2,7 @@ clc;
 close all;
 clear;
 
-filename = 'data/data';
+filename = 'data/data_12';
 
 convertToMat([filename '.bin']);
 
