@@ -58,6 +58,7 @@ set(SRC_LIST
   src/source_list/robot/robot.cpp
   src/source_list/robot/lwr4p_robot.cpp
   src/source_list/robot/dummy_robot.cpp
+  src/source_list/utils.cpp
   src/source_list/kdemo_record.cpp
 
   include/kdemo_record/gui/data_plot_dialog.cpp

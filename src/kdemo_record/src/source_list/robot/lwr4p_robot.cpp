@@ -1,4 +1,5 @@
 #include <kdemo_record/robot/lwr4p_robot.h>
+#include <kdemo_record/utils.h>
 
 LWR4p_Robot::LWR4p_Robot()
 {
@@ -31,7 +32,9 @@ LWR4p_Robot::LWR4p_Robot()
   cmd_mode.set(mode.get());
   jpos_cmd.set(robot->getJointPosition());
 
-  std::thread(&LWR4p_Robot::commandThread,this).detach();
+  std::thread robot_ctrl_thr = std::thread(&LWR4p_Robot::commandThread,this);
+  makeThreadRT(robot_ctrl_thr);
+  robot_ctrl_thr.detach();
 }
 
 LWR4p_Robot::~LWR4p_Robot()
