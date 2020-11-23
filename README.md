@@ -22,7 +22,9 @@ roslaunch kdemo_record kdemo_record_lwr4p.launch
 
 ## ====  How to use the GUI  ====
 There are 2 modes:
+
 IDLE: the robot is still and stiff.
+
 FREEDRIVE: the robot is free to be moved (gravity compensation mode)
 
 ### Register the data you want to record
