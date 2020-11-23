@@ -1,6 +1,8 @@
 #include "mainwindow.h"
 #include "utils.h"
 
+#include <ros/package.h>
+
 #include <QDebug>
 
 MainWindow::MainWindow(const Robot *robot, const RecData *rec_data, QWidget *parent): QMainWindow(parent)
@@ -41,7 +43,9 @@ MainWindow::MainWindow(const Robot *robot, const RecData *rec_data, QWidget *par
   clear_data = false;
   is_running = true;
 
-  default_save_data_path = "../data/recorded_data.bin";
+  project_path = ros::package::getPath("kdemo_record") + "/";
+
+  default_save_data_path = project_path + "../../kdemo_matlab/data/";
 
   mode = FREEDRIVE;
   setMode(IDLE);
@@ -338,20 +342,14 @@ void MainWindow::saveTriggered()
   //     return;
   // }
 
-  save_data_path = default_save_data_path;
+  save_data_path = default_save_data_path + "/recorded_data.bin";
   save_data = true;
   updateInterfaceOnSaveData();
 }
 
 void MainWindow::saveAsTriggered()
 {
-  // if (getMode() != IDLE)
-  // {
-  //    showWarningMsg("Mode must be set to \"IDLE\" to save the recorded data.");
-  //    return;
-  // }
-
-  QString save_as_data_path = QFileDialog::getSaveFileName(this, tr("Save Recorded Data"), QDir::currentPath(), "Binary files (*.bin)");
+  QString save_as_data_path = QFileDialog::getSaveFileName(this, tr("Save Recorded Data"), default_save_data_path.c_str(), "Binary files (*.bin)");
   if (save_as_data_path.isEmpty()) return;
 
   save_data_path = save_as_data_path.toStdString();

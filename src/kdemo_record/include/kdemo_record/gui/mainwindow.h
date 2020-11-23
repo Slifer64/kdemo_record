@@ -112,6 +112,7 @@ private:
     MtxVar<bool> clear_data;
     std::string save_data_path;
     std::string default_save_data_path;
+    std::string project_path;
 
     const Robot *robot;
     const RecData *rec_data;

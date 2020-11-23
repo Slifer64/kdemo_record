@@ -2,7 +2,7 @@ clc;
 close all;
 clear;
 
-filename = 'data/data_12';
+filename = 'data/data';
 
 convertToMat([filename '.bin']);
 
@@ -16,7 +16,7 @@ Data = trimData(Data, vel_thres);
 pos_data = Data.TOOL_POS;
 if (~isempty(pos_data))
     n_data = size(pos_data,2);
-    Time = (0:(n_data-1))*Ts; 
+    Time = (0:(n_data-1))*Ts;
     figure;
     hold on;
     plot(Time, pos_data(1,:), 'LineWidth',1.5);
@@ -25,7 +25,7 @@ if (~isempty(pos_data))
     legend({'$x$', '$y$', '$z$'}, 'interpreter','latex', 'fontsize',15);
     title('Position', 'interpreter','latex', 'fontsize',18);
     hold off;
-    
+
     figure;
     plot3(pos_data(1,:), pos_data(2,:), pos_data(3,:), 'LineWidth',1.5);
     title('$3D$ path', 'interpreter','latex', 'fontsize',18);
@@ -38,7 +38,7 @@ end
 orient_data = Data.TOOL_ORIENT;
 if (~isempty(orient_data))
     n_data = size(orient_data,2);
-    Time = (0:(n_data-1))*Ts; 
+    Time = (0:(n_data-1))*Ts;
     figure;
     hold on;
     plot(Time, orient_data(1,:), 'LineWidth',1.5);
@@ -73,7 +73,7 @@ end
 force_data = Data.TOOL_FORCE;
 if (~isempty(force_data))
     n_data = size(force_data,2);
-    Time = (0:(n_data-1))*Ts; 
+    Time = (0:(n_data-1))*Ts;
     figure;
     hold on;
     plot(Time, force_data(1,:), 'LineWidth',1.5);
@@ -88,7 +88,7 @@ end
 torque_data = Data.TOOL_TORQUE;
 if (~isempty(torque_data))
     n_data = size(torque_data,2);
-    Time = (0:(n_data-1))*Ts; 
+    Time = (0:(n_data-1))*Ts;
     figure;
     hold on;
     plot(Time, torque_data(1,:), 'LineWidth',1.5);
@@ -103,13 +103,13 @@ end
 jpos_data = Data.JOINT_POS;
 if (~isempty(jpos_data))
     n_data = size(jpos_data,2);
-    Time = (0:(n_data-1))*Ts; 
+    Time = (0:(n_data-1))*Ts;
     figure;
     hold on;
     legend_labels = [];
     for i=1:size(jpos_data,1)
         legend_labels = [legend_labels {['j' num2str(i)]}];
-        plot(Time, jpos_data(i,:), 'LineWidth',1.5); 
+        plot(Time, jpos_data(i,:), 'LineWidth',1.5);
     end
     legend(legend_labels, 'interpreter','latex', 'fontsize',15);
     title('Joints Position', 'interpreter','latex', 'fontsize',18);
@@ -120,13 +120,13 @@ end
 jtorque_data = Data.JOINT_TORQUE;
 if (~isempty(jtorque_data))
     n_data = size(jtorque_data,2);
-    Time = (0:(n_data-1))*Ts; 
+    Time = (0:(n_data-1))*Ts;
     figure;
     hold on;
     legend_labels = [];
     for i=1:size(jtorque_data,1)
         legend_labels = [legend_labels {['j' num2str(i)]}];
-        plot(Time, jtorque_data(i,:), 'LineWidth',1.5); 
+        plot(Time, jtorque_data(i,:), 'LineWidth',1.5);
     end
     legend(legend_labels, 'interpreter','latex', 'fontsize',15);
     title('Joints Torque', 'interpreter','latex', 'fontsize',18);
